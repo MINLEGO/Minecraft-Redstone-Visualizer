@@ -4,7 +4,7 @@ import fr.minlego.redstonevisualizer.core.BlockPos;
 import fr.minlego.redstonevisualizer.core.Zone;
 import java.util.Optional;
 
-/** The only settings tied to a particular single-player save. */
+/** The settings tied to a particular single-player save or multiplayer server. */
 public record WorldState(boolean enabled, Corner first, Corner second) {
     public static final WorldState EMPTY = new WorldState(false, null, null);
 

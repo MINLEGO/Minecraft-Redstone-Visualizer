@@ -4,9 +4,14 @@ import fr.minlego.redstonevisualizer.core.BlockPos;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
+import java.util.Locale;
 import java.util.Properties;
 
 /** A sidecar file in the save directory; it never changes Minecraft world data. */
@@ -14,6 +19,21 @@ public final class WorldStore {
     private static final String FILE_NAME = "redstone_visualizer.properties";
 
     private WorldStore() {
+    }
+
+    /** Returns a private local directory for one multiplayer server address. */
+    public static Path multiplayerDirectory(Path configDirectory, String address) {
+        if (address == null || address.isBlank()) {
+            throw new IllegalArgumentException("Missing server address");
+        }
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(
+                    address.strip().toLowerCase(Locale.ROOT).getBytes(StandardCharsets.UTF_8));
+            return configDirectory.resolve("redstone_visualizer").resolve("servers")
+                    .resolve(HexFormat.of().formatHex(digest));
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is unavailable", exception);
+        }
     }
 
     public static WorldState load(Path saveDirectory) throws IOException {

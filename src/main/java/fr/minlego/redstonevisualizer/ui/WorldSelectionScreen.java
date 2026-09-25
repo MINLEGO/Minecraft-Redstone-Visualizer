@@ -15,7 +15,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 
 /**
- * MaLiLib screen for selecting and saving the two corners of the solo-world
+ * MaLiLib screen for selecting and saving the two corners of the current-world
  * visualizer zone.
  *
  * <p>The session owns persistence. This screen only validates user input and
@@ -165,8 +165,8 @@ public final class WorldSelectionScreen extends GuiBase {
 
     private void captureCorner(int index) {
         VisualizerSession session = session();
-        if (session == null || !session.isSoloWorld() || client.world == null) {
-            setMessage("A solo world is required.", true);
+        if (session == null || !session.isWorldAvailable() || client.world == null) {
+            setMessage("A world is required.", true);
             return;
         }
         if (!(client.crosshairTarget instanceof BlockHitResult hit)
@@ -185,8 +185,8 @@ public final class WorldSelectionScreen extends GuiBase {
 
     private void applyCoordinates() {
         VisualizerSession session = session();
-        if (session == null || !session.isSoloWorld() || client.world == null) {
-            setMessage("A solo world is required.", true);
+        if (session == null || !session.isWorldAvailable() || client.world == null) {
+            setMessage("A world is required.", true);
             return;
         }
 
@@ -229,8 +229,8 @@ public final class WorldSelectionScreen extends GuiBase {
 
     private void toggle() {
         VisualizerSession session = session();
-        if (session == null || !session.isSoloWorld()) {
-            setMessage("A solo world is required.", true);
+        if (session == null || !session.isWorldAvailable()) {
+            setMessage("A world is required.", true);
             return;
         }
         session.toggle();
@@ -262,7 +262,7 @@ public final class WorldSelectionScreen extends GuiBase {
 
     private void updateControls() {
         VisualizerSession session = session();
-        boolean available = session != null && session.isSoloWorld();
+        boolean available = session != null && session.isWorldAvailable();
         if (toggleButton != null) {
             toggleButton.setDisplayString(available && session.state().enabled() ? "ON" : "OFF");
             toggleButton.setEnabled(available);
@@ -297,8 +297,8 @@ public final class WorldSelectionScreen extends GuiBase {
 
     private String stateLabel() {
         VisualizerSession session = session();
-        if (session == null || !session.isSoloWorld()) {
-            return "OFF (solo world required)";
+        if (session == null || !session.isWorldAvailable()) {
+            return "OFF (world required)";
         }
         return session.state().enabled() ? "ON" : "OFF";
     }

@@ -11,8 +11,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ServerInfo;
 import net.minecraft.client.render.chunk.ChunkBuilder;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.WorldSavePath;
@@ -20,14 +22,14 @@ import net.minecraft.util.math.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Connects one solo save, its client world and the section-rendering snapshot. */
+/** Connects one local or remote world to its local visualizer state. */
 public final class VisualizerSession {
     private static final Logger LOGGER = LoggerFactory.getLogger("redstone_visualizer");
 
     private final MinecraftClient client;
     private final AlphaTracker updates = new AlphaTracker();
     private ClientWorld world;
-    private Path saveDirectory;
+    private Path stateDirectory;
     private WorldState state = WorldState.EMPTY;
     private long tick;
     private int lastServerTick;
@@ -44,8 +46,8 @@ public final class VisualizerSession {
         return state;
     }
 
-    public boolean isSoloWorld() {
-        return world != null && saveDirectory != null;
+    public boolean isWorldAvailable() {
+        return world != null && stateDirectory != null;
     }
 
     public void onClientTick() {
@@ -56,18 +58,22 @@ public final class VisualizerSession {
         advanceGameClock();
     }
 
-    /** The integrated server's counter freezes with the solo-world pause. */
+    /** Solo follows the integrated server; multiplayer follows client game ticks. */
     private void advanceGameClock() {
-        if (!isSoloWorld()) {
-            return;
-        }
-        int serverTick = client.getServer().getTicks();
-        if (serverTick == lastServerTick) {
+        if (!isWorldAvailable()) {
             return;
         }
         long previousTick = tick;
-        tick += Integer.toUnsignedLong(serverTick - lastServerTick);
-        lastServerTick = serverTick;
+        if (client.getServer() != null) {
+            int serverTick = client.getServer().getTicks();
+            if (serverTick == lastServerTick) {
+                return;
+            }
+            tick += Integer.toUnsignedLong(serverTick - lastServerTick);
+            lastServerTick = serverTick;
+        } else {
+            tick++;
+        }
         if (state.enabled() && state.zone().isPresent()) {
             for (fr.minlego.redstonevisualizer.core.BlockPos position : updates.trackedPositions()) {
                 if (updates.alphaPercent(position, previousTick)
@@ -81,7 +87,7 @@ public final class VisualizerSession {
     }
 
     public void toggle() {
-        if (!isSoloWorld()) {
+        if (!isWorldAvailable()) {
             return;
         }
         boolean wasEnabled = state.enabled();
@@ -96,7 +102,7 @@ public final class VisualizerSession {
     }
 
     public void setCorner(int index, WorldState.Corner corner) {
-        if (!isSoloWorld() || (index != 1 && index != 2)) {
+        if (!isWorldAvailable() || (index != 1 && index != 2)) {
             return;
         }
         Zone previous = state.zone().orElse(null);
@@ -122,12 +128,11 @@ public final class VisualizerSession {
         }
         Zone previous = state.zone().orElse(null);
         world = next;
-        saveDirectory = client.getServer() == null ? null
-                : client.getServer().getSavePath(WorldSavePath.ROOT);
+        stateDirectory = stateDirectory(next);
         state = WorldState.EMPTY;
-        if (world != null && saveDirectory != null) {
+        if (world != null && stateDirectory != null) {
             try {
-                state = WorldStore.load(saveDirectory);
+                state = WorldStore.load(stateDirectory);
             } catch (IOException exception) {
                 LOGGER.warn("Could not load world visualizer settings", exception);
             }
@@ -142,7 +147,7 @@ public final class VisualizerSession {
     }
 
     private void observe() {
-        if (isSoloWorld() && state.enabled()) {
+        if (isWorldAvailable() && state.enabled()) {
             BlockStateUpdateTracker.enable(world, this::onBlockStateChange);
         } else if (world != null) {
             BlockStateUpdateTracker.disable(world);
@@ -184,7 +189,23 @@ public final class VisualizerSession {
 
     private void publish() {
         TerrainMask.configure(state.zone().orElse(null), dimension(),
-                isSoloWorld() && state.enabled(), updates, Set.copyOf(whitelist), tick);
+                isWorldAvailable() && state.enabled(), updates, Set.copyOf(whitelist), tick);
+    }
+
+    private Path stateDirectory(ClientWorld next) {
+        if (next == null) {
+            return null;
+        }
+        if (client.getServer() != null) {
+            return client.getServer().getSavePath(WorldSavePath.ROOT);
+        }
+        ServerInfo server = client.getCurrentServerEntry();
+        if (server == null && client.getNetworkHandler() != null) {
+            server = client.getNetworkHandler().getServerInfo();
+        }
+        return server == null || server.address == null || server.address.isBlank() ? null
+                : WorldStore.multiplayerDirectory(
+                        FabricLoader.getInstance().getConfigDir(), server.address);
     }
 
     private String dimension() {
@@ -215,11 +236,11 @@ public final class VisualizerSession {
     }
 
     private void save() {
-        if (saveDirectory == null) {
+        if (stateDirectory == null) {
             return;
         }
         try {
-            WorldStore.save(saveDirectory, state);
+            WorldStore.save(stateDirectory, state);
         } catch (IOException exception) {
             LOGGER.warn("Could not save world visualizer settings", exception);
         }
