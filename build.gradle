@@ -1,0 +1,69 @@
+plugins {
+    id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    modImplementation "maven.modrinth:GcWjdA9I:${project.malilib_version_id}"
+}
+
+processResources {
+    inputs.property 'version', project.version
+    inputs.property 'loader_version', project.loader_version
+    inputs.property 'minecraft_version', project.minecraft_version
+    inputs.property 'fabric_api_version', project.fabric_api_version
+    inputs.property 'malilib_version', project.malilib_version
+
+    filesMatching('fabric.mod.json') {
+        expand(
+            version: project.version,
+            loader_version: project.loader_version,
+            minecraft_version: project.minecraft_version,
+            fabric_api_version: project.fabric_api_version,
+            malilib_version: project.malilib_version
+        )
+    }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+    options.encoding = 'UTF-8'
+}
+
+tasks.named('test') {
+    failOnNoDiscoveredTests = false
+}
+
+['core.CoreLogicTest', 'world.WorldStoreTest', 'config.WhitelistEditorTest'].each { testClass ->
+    def taskName = testClass.substring(testClass.lastIndexOf('.') + 1)
+    tasks.register(taskName, JavaExec) {
+        dependsOn tasks.named('testClasses')
+        classpath = sourceSets.test.runtimeClasspath
+        mainClass = "fr.minlego.redstonevisualizer.${testClass}"
+    }
+    tasks.named('check') { dependsOn taskName }
+}

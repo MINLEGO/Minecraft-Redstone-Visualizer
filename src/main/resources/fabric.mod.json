@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "redstone_visualizer",
+  "version": "${version}",
+  "name": "Redstone Visualizer",
+  "description": "Client-side visualization of recent redstone block updates.",
+  "authors": [
+    "minlego"
+  ],
+  "license": "All-Rights-Reserved",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "fr.minlego.redstonevisualizer.RedstoneVisualizerClient"
+    ]
+  },
+  "mixins": [
+    "redstonevisualizer.block.mixins.json",
+    "redstonevisualizer.update.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=21",
+    "fabric-api": ">=${fabric_api_version}",
+    "malilib": ">=${malilib_version}"
+  }
+}

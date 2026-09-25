@@ -1,0 +1,18 @@
+{
+  "redstonevisualizer.config.title": "Redstone Visualizer",
+  "redstonevisualizer.config.hotkeys": "Redstone Visualizer",
+  "redstonevisualizer.config.name.baseOpacity": "Base opacity",
+  "redstonevisualizer.config.name.durationTicks": "Visibility duration (ticks)",
+  "redstonevisualizer.config.name.fadeTicks": "Fade duration (ticks)",
+  "redstonevisualizer.config.name.alertThreshold": "Zone size alert threshold",
+  "redstonevisualizer.config.name.whitelist": "Always visible blocks",
+  "redstonevisualizer.config.name.toggle": "Toggle visualizer",
+  "redstonevisualizer.config.name.openMenu": "Open settings",
+  "redstonevisualizer.config.comment.baseOpacity": "Opacity from 0 to 100 percent for inactive blocks.",
+  "redstonevisualizer.config.comment.durationTicks": "Total visibility duration in game ticks.",
+  "redstonevisualizer.config.comment.fadeTicks": "Fade duration in game ticks; it cannot exceed the total duration.",
+  "redstonevisualizer.config.comment.alertThreshold": "Show an alert above this many positions; it does not block activation.",
+  "redstonevisualizer.config.comment.whitelist": "Namespaced block identifiers that stay fully visible.",
+  "redstonevisualizer.config.comment.toggle": "Keybind used to toggle the visualizer.",
+  "redstonevisualizer.config.comment.openMenu": "Keybind used to open the visualizer settings."
+}

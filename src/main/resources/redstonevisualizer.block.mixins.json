@@ -1,0 +1,8 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "fr.minlego.redstonevisualizer.render.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": ["BlockSectionMixin", "FluidSectionMixin", "FluidFaceMixin", "BlockEntityRenderMixin", "NeighborFaceMixin", "IndigoTerrainMixin", "IndigoFaceMixin"],
+  "injectors": {"defaultRequire": 1}
+}

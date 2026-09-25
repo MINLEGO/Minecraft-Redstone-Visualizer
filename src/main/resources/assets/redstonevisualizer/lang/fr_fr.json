@@ -1,0 +1,18 @@
+{
+  "redstonevisualizer.config.title": "Visualiseur de redstone",
+  "redstonevisualizer.config.hotkeys": "Visualiseur de redstone",
+  "redstonevisualizer.config.name.baseOpacity": "Opacité de base",
+  "redstonevisualizer.config.name.durationTicks": "Durée de visibilité (ticks)",
+  "redstonevisualizer.config.name.fadeTicks": "Durée du fondu (ticks)",
+  "redstonevisualizer.config.name.alertThreshold": "Seuil d’alerte de taille",
+  "redstonevisualizer.config.name.whitelist": "Blocs toujours visibles",
+  "redstonevisualizer.config.name.toggle": "Basculer le visualiseur",
+  "redstonevisualizer.config.name.openMenu": "Ouvrir les réglages",
+  "redstonevisualizer.config.comment.baseOpacity": "Opacité de 0 à 100 pour cent des blocs inactifs.",
+  "redstonevisualizer.config.comment.durationTicks": "Durée totale de visibilité en ticks de jeu.",
+  "redstonevisualizer.config.comment.fadeTicks": "Durée du fondu en ticks ; elle ne peut pas dépasser la durée totale.",
+  "redstonevisualizer.config.comment.alertThreshold": "Affiche une alerte au-delà de ce nombre de positions, sans bloquer l’activation.",
+  "redstonevisualizer.config.comment.whitelist": "Identifiants de blocs namespacés qui restent entièrement visibles.",
+  "redstonevisualizer.config.comment.toggle": "Raccourci utilisé pour basculer le visualiseur.",
+  "redstonevisualizer.config.comment.openMenu": "Raccourci utilisé pour ouvrir les réglages du visualiseur."
+}
