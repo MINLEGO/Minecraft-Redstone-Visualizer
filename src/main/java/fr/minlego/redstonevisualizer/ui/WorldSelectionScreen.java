@@ -3,6 +3,7 @@ package fr.minlego.redstonevisualizer.ui;
 import fi.dy.masa.malilib.gui.GuiBase;
 import fi.dy.masa.malilib.gui.GuiTextFieldInteger;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
+import fi.dy.masa.malilib.render.GuiContext;
 import fr.minlego.redstonevisualizer.RedstoneVisualizerClient;
 import fr.minlego.redstonevisualizer.VisualizerSession;
 import fr.minlego.redstonevisualizer.config.RedstoneVisualizerConfig;
@@ -10,7 +11,6 @@ import fr.minlego.redstonevisualizer.core.BlockPos;
 import fr.minlego.redstonevisualizer.core.Zone;
 import fr.minlego.redstonevisualizer.world.WorldState;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 
@@ -91,7 +91,7 @@ public final class WorldSelectionScreen extends GuiBase {
     }
 
     @Override
-    protected void drawContents(DrawContext drawContext, int mouseX, int mouseY, float delta) {
+    protected void drawContents(GuiContext drawContext, int mouseX, int mouseY, float delta) {
         int left = contentLeft();
         int top = contentTop();
         int firstRow = top + 61;

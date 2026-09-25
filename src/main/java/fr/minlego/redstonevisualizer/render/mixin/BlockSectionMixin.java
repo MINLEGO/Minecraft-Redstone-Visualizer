@@ -8,7 +8,6 @@ import fr.minlego.redstonevisualizer.render.AlphaVertexConsumer;
 import fr.minlego.redstonevisualizer.render.TerrainMask;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.BlockRenderLayer;
-import net.minecraft.client.render.RenderLayers;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.block.BlockRenderManager;
 import net.minecraft.client.render.chunk.SectionBuilder;
@@ -33,7 +32,7 @@ public abstract class BlockSectionMixin {
     }
 
     @WrapOperation(method = "build", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/client/render/RenderLayers;getBlockLayer(Lnet/minecraft/block/BlockState;)Lnet/minecraft/client/render/BlockRenderLayer;"))
+            target = "Lnet/minecraft/client/render/BlockRenderLayers;getBlockLayer(Lnet/minecraft/block/BlockState;)Lnet/minecraft/client/render/BlockRenderLayer;"))
     private BlockRenderLayer redstoneVisualizer$layer(BlockState state,
             Operation<BlockRenderLayer> original, @Local(index = 14) BlockPos position) {
         return TerrainMask.opacityAt(position, state) < 255

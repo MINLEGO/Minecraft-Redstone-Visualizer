@@ -25,6 +25,12 @@ public final class AlphaVertexConsumer implements VertexConsumer {
     }
 
     @Override
+    public VertexConsumer color(int color) {
+        return color((color >>> 16) & 255, (color >>> 8) & 255,
+                color & 255, (color >>> 24) & 255);
+    }
+
+    @Override
     public VertexConsumer texture(float u, float v) {
         delegate.texture(u, v);
         return this;
@@ -45,6 +51,12 @@ public final class AlphaVertexConsumer implements VertexConsumer {
     @Override
     public VertexConsumer normal(float x, float y, float z) {
         delegate.normal(x, y, z);
+        return this;
+    }
+
+    @Override
+    public VertexConsumer lineWidth(float width) {
+        delegate.lineWidth(width);
         return this;
     }
 }

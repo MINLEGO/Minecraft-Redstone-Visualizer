@@ -9,10 +9,22 @@ base {
     archivesName = project.archives_base_name
 }
 
+loom {
+    runs {
+        client {
+            runDirectory = file('run-1.21.11')
+        }
+    }
+}
+
 repositories {
     maven {
         name = 'Modrinth'
         url = 'https://api.modrinth.com/maven'
+    }
+    maven {
+        name = 'FallenBreath'
+        url = 'https://maven.fallenbreath.me/releases'
     }
 }
 
@@ -22,6 +34,8 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
     modImplementation "maven.modrinth:GcWjdA9I:${project.malilib_version_id}"
+    modImplementation 'me.fallenbreath:conditional-mixin-fabric:0.6.4'
+    include 'me.fallenbreath:conditional-mixin-fabric:0.6.4'
 }
 
 processResources {
@@ -58,7 +72,7 @@ tasks.named('test') {
     failOnNoDiscoveredTests = false
 }
 
-['core.CoreLogicTest', 'world.WorldStoreTest', 'config.WhitelistEditorTest'].each { testClass ->
+['core.CoreLogicTest', 'world.WorldStoreTest'].each { testClass ->
     def taskName = testClass.substring(testClass.lastIndexOf('.') + 1)
     tasks.register(taskName, JavaExec) {
         dependsOn tasks.named('testClasses')

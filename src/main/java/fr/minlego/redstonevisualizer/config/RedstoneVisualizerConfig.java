@@ -104,7 +104,7 @@ public final class RedstoneVisualizerConfig implements IConfigHandler {
         return INSTANCE;
     }
 
-    /** Registers the handler and keybind with the verified MaLiLib 0.26.8 APIs. */
+    /** Registers the handler and keybind with MaLiLib. */
     public static void register() {
         if (registered) {
             return;
