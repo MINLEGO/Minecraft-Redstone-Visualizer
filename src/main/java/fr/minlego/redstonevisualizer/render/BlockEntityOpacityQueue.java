@@ -3,17 +3,21 @@ package fr.minlego.redstonevisualizer.render;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.DepthTestFunction;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.gl.UniformType;
 import net.minecraft.client.render.LayeringTransform;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderLayers;
 import net.minecraft.client.render.RenderSetup;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.render.block.MovingBlockRenderState;
 import net.minecraft.client.render.command.ModelCommandRenderer;
 import net.minecraft.client.render.command.OrderedRenderCommandQueue;
@@ -28,9 +32,9 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemDisplayContext;
 import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.Identifier;
 import org.joml.Quaternionf;
 
 /** Applies one block entity's opacity to model commands and delegates everything else. */
@@ -57,6 +61,18 @@ public final class BlockEntityOpacityQueue implements OrderedRenderCommandQueue 
                     .withCull(false)
                     .withDepthTestFunction(DepthTestFunction.LESS_DEPTH_TEST)
                     .build());
+    private static final Identifier PORTAL_SHADER = Identifier.of("redstone_visualizer",
+            "core/end_portal_translucent");
+    private static final RenderPipeline TRANSLUCENT_END_PORTAL_PIPELINE = portalPipeline(
+            "end_portal_translucent", 15);
+    private static final RenderPipeline TRANSLUCENT_END_GATEWAY_PIPELINE = portalPipeline(
+            "end_gateway_translucent", 16);
+    private static final RenderLayer TRANSLUCENT_END_PORTAL_LAYER = portalLayer(
+            "redstone_visualizer_end_portal_translucent",
+            TRANSLUCENT_END_PORTAL_PIPELINE, RenderLayers.endPortal());
+    private static final RenderLayer TRANSLUCENT_END_GATEWAY_LAYER = portalLayer(
+            "redstone_visualizer_end_gateway_translucent",
+            TRANSLUCENT_END_GATEWAY_PIPELINE, RenderLayers.endGateway());
     private static final Map<RenderLayer, RenderLayer> TRANSLUCENT_LAYERS =
             new IdentityHashMap<>();
 
@@ -120,6 +136,33 @@ public final class BlockEntityOpacityQueue implements OrderedRenderCommandQueue 
                 .build());
     }
 
+    private static RenderPipeline portalPipeline(String name, int layers) {
+        return RenderPipelines.register(RenderPipeline.builder()
+                .withLocation(Identifier.of("redstone_visualizer", "pipeline/" + name))
+                .withVertexShader(PORTAL_SHADER)
+                .withFragmentShader(PORTAL_SHADER)
+                .withShaderDefine("PORTAL_LAYERS", layers)
+                .withSampler("Sampler0")
+                .withSampler("Sampler1")
+                .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
+                .withUniform("Projection", UniformType.UNIFORM_BUFFER)
+                .withUniform("Fog", UniformType.UNIFORM_BUFFER)
+                .withUniform("Globals", UniformType.UNIFORM_BUFFER)
+                .withBlend(BlendFunction.TRANSLUCENT)
+                .withDepthTestFunction(DepthTestFunction.LESS_DEPTH_TEST)
+                .withVertexFormat(VertexFormats.POSITION_COLOR, VertexFormat.DrawMode.QUADS)
+                .build());
+    }
+
+    private static RenderLayer portalLayer(String name, RenderPipeline pipeline,
+            RenderLayer source) {
+        return RenderLayer.of(name, RenderSetup.builder(pipeline)
+                .texture("Sampler0", source.renderSetup.textures.get("Sampler0").location())
+                .texture("Sampler1", source.renderSetup.textures.get("Sampler1").location())
+                .translucent()
+                .build());
+    }
+
     @Override
     public RenderCommandQueue getBatchingQueue(int layer) {
         return delegate.getBatchingQueue(layer);
@@ -144,7 +187,8 @@ public final class BlockEntityOpacityQueue implements OrderedRenderCommandQueue 
             boolean shadow, TextRenderer.TextLayerType layer, int light,
             int color, int backgroundColor, int outlineColor) {
         delegate.submitText(matrices, x, y, text, shadow, layer, light,
-                color, backgroundColor, outlineColor);
+                applyOpacity(color, opacity), applyOpacity(backgroundColor, opacity),
+                applyOpacity(outlineColor, opacity));
     }
 
     @Override
@@ -174,8 +218,8 @@ public final class BlockEntityOpacityQueue implements OrderedRenderCommandQueue 
             boolean hasFoil, boolean glint, int color,
             ModelCommandRenderer.CrumblingOverlayCommand crumblingOverlay,
             int outlineColor) {
-        delegate.submitModelPart(modelPart, matrices, layer, light, overlay, sprite,
-                hasFoil, glint, color, crumblingOverlay, outlineColor);
+        delegate.submitModelPart(modelPart, matrices, translucent(layer), light, overlay, sprite,
+                hasFoil, glint, applyOpacity(color, opacity), crumblingOverlay, outlineColor);
     }
 
     @Override
@@ -207,7 +251,17 @@ public final class BlockEntityOpacityQueue implements OrderedRenderCommandQueue 
 
     @Override
     public void submitCustom(MatrixStack matrices, RenderLayer layer, Custom command) {
-        delegate.submitCustom(matrices, layer, command);
+        RenderLayer translucentLayer;
+        if (layer == RenderLayers.endPortal()) {
+            translucentLayer = TRANSLUCENT_END_PORTAL_LAYER;
+        } else if (layer == RenderLayers.endGateway()) {
+            translucentLayer = TRANSLUCENT_END_GATEWAY_LAYER;
+        } else {
+            delegate.submitCustom(matrices, layer, command);
+            return;
+        }
+        delegate.submitCustom(matrices, translucentLayer, (entry, vertices) ->
+                command.render(entry, new AlphaVertexConsumer(vertices, opacity, true)));
     }
 
     @Override

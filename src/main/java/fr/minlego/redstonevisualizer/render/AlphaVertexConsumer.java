@@ -6,15 +6,24 @@ import net.minecraft.client.render.VertexConsumer;
 public final class AlphaVertexConsumer implements VertexConsumer {
     private final VertexConsumer delegate;
     private final int opacity;
+    private final boolean colorOnVertex;
 
     public AlphaVertexConsumer(VertexConsumer delegate, int opacity) {
+        this(delegate, opacity, false);
+    }
+
+    public AlphaVertexConsumer(VertexConsumer delegate, int opacity, boolean colorOnVertex) {
         this.delegate = delegate;
         this.opacity = opacity;
+        this.colorOnVertex = colorOnVertex;
     }
 
     @Override
     public VertexConsumer vertex(float x, float y, float z) {
         delegate.vertex(x, y, z);
+        if (colorOnVertex) {
+            delegate.color(255, 255, 255, opacity);
+        }
         return this;
     }
 
