@@ -2,6 +2,7 @@ package fr.minlego.redstonevisualizer.render.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import fr.minlego.redstonevisualizer.render.BlockEntityOpacityQueue;
 import fr.minlego.redstonevisualizer.render.TerrainMask;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRenderManager;
@@ -21,8 +22,13 @@ public abstract class BlockEntityRenderMixin {
             BlockEntityRenderState state, MatrixStack matrices,
             OrderedRenderCommandQueue queue, CameraRenderState camera,
             Operation<Void> original) {
-        if (TerrainMask.opacityAt(state.pos, state.blockState) != 0) {
-            original.call(renderer, state, matrices, queue, camera);
+        int opacity = TerrainMask.opacityAt(state.pos, state.blockState);
+        if (!BlockEntityOpacityQueue.shouldRender(opacity)) {
+            return;
         }
+        original.call(renderer, state, matrices,
+                BlockEntityOpacityQueue.shouldWrap(opacity)
+                        ? new BlockEntityOpacityQueue(queue, opacity) : queue,
+                camera);
     }
 }

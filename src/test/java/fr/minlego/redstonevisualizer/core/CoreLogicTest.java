@@ -1,6 +1,10 @@
 package fr.minlego.redstonevisualizer.core;
 
+import fr.minlego.redstonevisualizer.render.BlockEntityOpacityQueue;
 import java.util.OptionalLong;
+import com.mojang.blaze3d.platform.DepthTestFunction;
+import net.minecraft.client.render.RenderLayers;
+import net.minecraft.util.Identifier;
 
 /** Standalone smoke test: javac ... && java ...CoreLogicTest. */
 public final class CoreLogicTest {
@@ -12,6 +16,7 @@ public final class CoreLogicTest {
         zoneSizeDoesNotOverflowSilently();
         alphaFadesAndRelCanBeRestarted();
         whitelistAndStateChanges();
+        blockEntityOpacityRoutesAndMultipliesAlpha();
         System.out.println("CoreLogicTest OK");
     }
 
@@ -71,6 +76,26 @@ public final class CoreLogicTest {
                 "changed state is recorded");
         check(tracker.alpha(pos, "minecraft:redstone_lamp", 50, whitelist) == 100,
                 "whitelisted block stays visible");
+    }
+
+    private static void blockEntityOpacityRoutesAndMultipliesAlpha() {
+        check(!BlockEntityOpacityQueue.shouldRender(0), "zero opacity skips block entities");
+        check(BlockEntityOpacityQueue.shouldWrap(76), "intermediate opacity wraps commands");
+        check(!BlockEntityOpacityQueue.shouldWrap(255), "full opacity keeps vanilla queue");
+        check(BlockEntityOpacityQueue.applyOpacity(0x80ABCDEF, 128) == 0x40ABCDEF,
+                "command opacity multiplies existing alpha");
+        var cullPipeline = BlockEntityOpacityQueue.translucent(
+                RenderLayers.entityCutout(Identifier.ofVanilla("textures/entity/chest/normal.png")))
+                .getRenderPipeline();
+        check(cullPipeline.isCull(), "translucent conversion preserves culling");
+        check(cullPipeline.getDepthTestFunction() == DepthTestFunction.LESS_DEPTH_TEST,
+                "translucent conversion rejects coplanar faces");
+        var noCullPipeline = BlockEntityOpacityQueue.translucent(
+                RenderLayers.entityCutoutNoCull(Identifier.ofVanilla(
+                        "textures/entity/enderdragon/enderdragon.png"))).getRenderPipeline();
+        check(!noCullPipeline.isCull(), "no-cull conversion preserves no-cull geometry");
+        check(noCullPipeline.getDepthTestFunction() == DepthTestFunction.LESS_DEPTH_TEST,
+                "no-cull conversion rejects coplanar faces");
     }
 
     private static void check(boolean condition, String message) {

@@ -3,6 +3,8 @@
 Statut : prototype implémenté ; rendu vanilla hors block entities et parité 1.21.10/1.21.11 validés par l'utilisateur.
 Cible : Minecraft Java **1.21.10 et 1.21.11**, **Fabric**, mod installé uniquement côté client, usage **solo ou multijoueur**.
 
+Retest utilisateur en 1.21.11 sur le monde officiel Debug : tous les blocs sont invisibles à 0 % d'opacité. Au-dessus de 0 %, les parties rendues par block entities restent opaques : lits, coffres (toutes variantes, priorité), panneaux, têtes, portails de l'End, livres des tables d'enchantement et des lecterns, bannières, shulker boxes, conduits, parties mobiles des cloches, statues de copper golem et pots décorés.
+
 ## 1. Résultat attendu
 
 Le joueur sélectionne un volume entre deux blocs. Dans ce volume, les blocs qui n'ont pas changé récemment de `BlockState` prennent une opacité réglable. Chaque changement d'état rend le bloc entièrement visible pendant une durée réglable, puis son apparence revient progressivement à l'opacité de base. Une liste de types de blocs reste toujours visible. Le monde, ses collisions, sa lumière et sa redstone ne sont pas modifiés.
