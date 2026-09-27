@@ -16,6 +16,7 @@
   },
   "mixins": [
     "redstonevisualizer.block.mixins.json",
+    "redstonevisualizer.sodium.mixins.json",
     "redstonevisualizer.update.mixins.json"
   ],
   "depends": {

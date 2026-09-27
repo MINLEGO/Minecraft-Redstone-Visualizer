@@ -6,11 +6,13 @@ import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.render.GuiContext;
 import fr.minlego.redstonevisualizer.RedstoneVisualizerClient;
 import fr.minlego.redstonevisualizer.VisualizerSession;
+import fr.minlego.redstonevisualizer.compat.SodiumCompatibility;
 import fr.minlego.redstonevisualizer.config.RedstoneVisualizerConfig;
 import fr.minlego.redstonevisualizer.core.BlockPos;
 import fr.minlego.redstonevisualizer.core.Zone;
 import fr.minlego.redstonevisualizer.world.WorldState;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.text.Text;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 
@@ -38,6 +40,7 @@ public final class WorldSelectionScreen extends GuiBase {
     private ButtonGeneric captureFirstButton;
     private ButtonGeneric captureSecondButton;
     private ButtonGeneric applyButton;
+    private ButtonGeneric forceSodiumButton;
     private String message;
     private boolean messageError;
 
@@ -85,6 +88,12 @@ public final class WorldSelectionScreen extends GuiBase {
         addButton(new ButtonGeneric(
                 left, top + 170, 124, BUTTON_HEIGHT, "Close"),
                 (button, mouseButton) -> closeGui(false));
+        if (SodiumCompatibility.requiresWarning()) {
+            forceSodiumButton = addButton(new ButtonGeneric(
+                    left + 134, top + 170, 270, BUTTON_HEIGHT,
+                    translated("redstonevisualizer.sodium.force")),
+                    (button, mouseButton) -> forceSodium());
+        }
 
         loadFieldsFromState();
         updateControls();
@@ -109,6 +118,26 @@ public final class WorldSelectionScreen extends GuiBase {
         drawString(drawContext, "Z", left + 194, firstRow - 12, 0xFFBBBBBB);
 
         int statusY = top + 200;
+        if (SodiumCompatibility.requiresWarning()) {
+            drawString(drawContext, translated("redstonevisualizer.sodium.warning.detected",
+                    SodiumCompatibility.detectedVersion()), left, statusY, 0xFFFFAA00);
+            statusY += 12;
+            drawString(drawContext, translated("redstonevisualizer.sodium.warning.validated",
+                    SodiumCompatibility.SUPPORTED_VERSION), left, statusY, 0xFFFFAA00);
+            statusY += 12;
+            if (SodiumCompatibility.state() == SodiumCompatibility.State.UNSUPPORTED) {
+                drawString(drawContext, translated("redstonevisualizer.sodium.warning.disabled"),
+                        left, statusY, 0xFFFFAA00);
+                statusY += 12;
+            } else if (SodiumCompatibility.isForced()) {
+                drawString(drawContext, translated("redstonevisualizer.sodium.status.forced"),
+                        left, statusY, 0xFFFF5555);
+                statusY += 12;
+            }
+            drawString(drawContext, translated("redstonevisualizer.sodium.warning.risk"),
+                    left, statusY, 0xFFFF5555);
+            statusY += 12;
+        }
         WorldState state = currentState();
         if (state.first() == null) {
             drawString(drawContext, "Corner 1 is missing.", left, statusY, 0xFFFFAA00);
@@ -233,9 +262,23 @@ public final class WorldSelectionScreen extends GuiBase {
             setMessage("A world is required.", true);
             return;
         }
+        if (!SodiumCompatibility.isVisualizationAllowed()) {
+            setMessage(translated("redstonevisualizer.sodium.message.disabled"), true);
+            return;
+        }
         session.toggle();
         updateControls();
         setMessage("State changed.", false);
+    }
+
+    private void forceSodium() {
+        SodiumCompatibility.forceForSession();
+        VisualizerSession session = session();
+        if (session != null) {
+            session.compatibilityChanged();
+        }
+        updateControls();
+        setMessage(translated("redstonevisualizer.sodium.message.forced"), false);
     }
 
     private void loadFieldsFromState() {
@@ -264,8 +307,8 @@ public final class WorldSelectionScreen extends GuiBase {
         VisualizerSession session = session();
         boolean available = session != null && session.isWorldAvailable();
         if (toggleButton != null) {
-            toggleButton.setDisplayString(available && session.state().enabled() ? "ON" : "OFF");
-            toggleButton.setEnabled(available);
+            toggleButton.setDisplayString(available && session.isVisualizationActive() ? "ON" : "OFF");
+            toggleButton.setEnabled(available && SodiumCompatibility.isVisualizationAllowed());
         }
         if (captureFirstButton != null) {
             captureFirstButton.setEnabled(available);
@@ -275,6 +318,14 @@ public final class WorldSelectionScreen extends GuiBase {
         }
         if (applyButton != null) {
             applyButton.setEnabled(available);
+        }
+        if (forceSodiumButton != null) {
+            forceSodiumButton.setEnabled(SodiumCompatibility.state()
+                    == SodiumCompatibility.State.UNSUPPORTED);
+            if (SodiumCompatibility.isForced()) {
+                forceSodiumButton.setDisplayString(
+                        translated("redstonevisualizer.sodium.status.forced"));
+            }
         }
     }
 
@@ -300,7 +351,7 @@ public final class WorldSelectionScreen extends GuiBase {
         if (session == null || !session.isWorldAvailable()) {
             return "OFF (world required)";
         }
-        return session.state().enabled() ? "ON" : "OFF";
+        return session.isVisualizationActive() ? "ON" : "OFF";
     }
 
     private String currentDimension() {
@@ -321,6 +372,10 @@ public final class WorldSelectionScreen extends GuiBase {
     private void setMessage(String value, boolean error) {
         message = value;
         messageError = error;
+    }
+
+    private static String translated(String key, Object... arguments) {
+        return Text.translatable(key, arguments).getString();
     }
 
     private record ParsedCorner(BlockPos position) {

@@ -14,5 +14,13 @@
   "redstonevisualizer.config.comment.alertThreshold": "Show an alert above this many positions; it does not block activation.",
   "redstonevisualizer.config.comment.whitelist": "Namespaced block identifiers that stay fully visible.",
   "redstonevisualizer.config.comment.toggle": "Keybind used to toggle the visualizer.",
-  "redstonevisualizer.config.comment.openMenu": "Keybind used to open the visualizer settings."
+  "redstonevisualizer.config.comment.openMenu": "Keybind used to open the visualizer settings.",
+  "redstonevisualizer.sodium.force": "Force for this session",
+  "redstonevisualizer.sodium.warning.detected": "Sodium %s detected.",
+  "redstonevisualizer.sodium.warning.validated": "Compatibility validated only with Sodium %s.",
+  "redstonevisualizer.sodium.warning.disabled": "Visualization is disabled until you force this session.",
+  "redstonevisualizer.sodium.warning.risk": "Forced mode may render incompletely or crash the client.",
+  "redstonevisualizer.sodium.status.forced": "FORCED — UNTESTED",
+  "redstonevisualizer.sodium.message.disabled": "Visualization is disabled until Sodium is forced.",
+  "redstonevisualizer.sodium.message.forced": "Sodium compatibility forced for this session."
 }

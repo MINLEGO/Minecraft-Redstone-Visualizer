@@ -1,5 +1,6 @@
 package fr.minlego.redstonevisualizer.core;
 
+import fr.minlego.redstonevisualizer.compat.SodiumCompatibility;
 import fr.minlego.redstonevisualizer.render.BlockEntityOpacityQueue;
 import java.util.OptionalLong;
 import com.mojang.blaze3d.platform.DepthTestFunction;
@@ -17,7 +18,15 @@ public final class CoreLogicTest {
         alphaFadesAndRelCanBeRestarted();
         whitelistAndStateChanges();
         blockEntityOpacityRoutesAndMultipliesAlpha();
+        sodiumCompatibilityUsesTheExactValidatedVersion();
         System.out.println("CoreLogicTest OK");
+    }
+
+    private static void sodiumCompatibilityUsesTheExactValidatedVersion() {
+        check(SodiumCompatibility.isSupportedVersion("0.8.7+mc1.21.11"),
+                "validated Sodium version is accepted");
+        check(!SodiumCompatibility.isSupportedVersion("0.8.8+mc1.21.11"),
+                "other Sodium versions require an explicit session override");
     }
 
     private static void zoneIsInclusiveAndDimensionAware() {

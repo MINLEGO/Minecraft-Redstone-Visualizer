@@ -1,6 +1,6 @@
 # Plan de développement — Redstone Visualizer
 
-Statut : prototype implémenté ; rendu vanilla hors block entities et parité 1.21.10/1.21.11 validés par l'utilisateur.
+Statut : prototype implémenté ; rendu vanilla hors block entities et parité 1.21.10/1.21.11 validés par l'utilisateur ; adaptateur Sodium 0.8.7 chargé sans erreur, validation visuelle en attente.
 Cible : Minecraft Java **1.21.10 et 1.21.11**, **Fabric**, mod installé uniquement côté client, usage **solo ou multijoueur**.
 
 Retest utilisateur en 1.21.11 sur le monde officiel Debug : tous les blocs sont invisibles à 0 % d'opacité. Au-dessus de 0 %, les parties rendues par block entities restent opaques : lits, coffres (toutes variantes, priorité), panneaux, têtes, portails de l'End, livres des tables d'enchantement et des lecterns, bannières, shulker boxes, conduits, parties mobiles des cloches, statues de copper golem et pots décorés.
@@ -25,7 +25,7 @@ Le joueur sélectionne un volume entre deux blocs. Dans ce volume, les blocs qui
 | Couverture | Tous les blocs vanilla 1.21.10 et 1.21.11, dont modèles solides/découpés/translucides, fluides et blocs avec rendu de block entity. Les faces internes d'un bloc récent ou en whitelist doivent être visibles. Blocs ajoutés par d'autres mods : prise en charge au mieux. |
 | Frontière | Seuls les blocs dont la position est dans la zone changent de rendu. Un mur hors zone reste normal. Entités, particules et objets tenus ne font pas partie du masque. |
 | Taille | Alerte au-delà de **32 768 positions** initialement, seuil configurable, sans plafond bloquant. |
-| Compatibilité | Minecraft/Fabric sans shader est la cible obligatoire initiale. Le serveur n'a pas besoin du mod et aucun paquet spécifique n'est envoyé. Sodium et Iris sont évalués séparément après la version fonctionnelle ; aucune compatibilité implicite n'est annoncée. |
+| Compatibilité | Minecraft/Fabric sans shader reste la cible obligatoire. Le serveur n'a pas besoin du mod et aucun paquet spécifique n'est envoyé. Un adaptateur optionnel vise exactement Sodium **0.8.7+mc1.21.11** sans l'embarquer. Toute autre version désactive l'effet, sauf forçage explicite pour la session avec avertissement. Iris est exclu. |
 
 À l'état ON mais sans zone valide, l'interface indique le ou les coins manquants et le monde conserve son rendu normal. À l'état OFF, le rendu et les interactions sont ceux de Minecraft, même si la zone et les réglages restent enregistrés.
 
@@ -88,7 +88,7 @@ Règle d'alpha pour un bloc hors whitelist, avec `a` l'opacité de base, `X` la 
 - Exécuter les tests ciblés de la logique de zone, de whitelist, de temporisation/fondu et de lecture/écriture de configuration. Garder peu de tests mais couvrir les erreurs qui changeraient le comportement visible.
 - En jeu, couvrir : première activation, coin manquant, autre dimension, recharge du monde/chunk, ON/OFF persistant, réactivation, pause, update répétée, destruction, liste blanche, zone au-delà du seuil, connexion et reconnexion à deux serveurs distincts.
 - Comparer sur la même machine les temps de frame, pics de reconstruction de chunks et mémoire avec effet OFF/ON, sur une petite zone puis à 32 768 positions. Noter les résultats et corriger tout gel ou coût qui croît sans borne.
-- Tester les blocs moddés disponibles au mieux. Tester Sodium puis Iris séparément et consigner ce qui fonctionne, échoue ou reste non validé ; ne pas dégrader silencieusement la cible Fabric sans shader.
+- Tester les blocs moddés disponibles au mieux. Pour Sodium 0.8.7, vérifier pierre, redstone, verre, eau et coffre à 0/50/100 %, ON/OFF, réglages, whitelist, fondu, faces internes, frontière de chunk, rechargement et coût à 32 768 positions. Iris reste exclu ; ne pas dégrader silencieusement la cible Fabric sans shader.
 - Produire le JAR, un README court (installation, MaLiLib requis, usage, réglages, limites vérifiées) et les résultats de validation.
 
 **Sortie :** build reproductible, comportement contractuel vérifié en jeu et limites annoncées à partir de tests réels.
@@ -99,7 +99,7 @@ Le **prototype de rendu est le premier jalon risqué**. Minecraft dessine le ter
 
 Le second risque est la performance : à 0 % de base, peu de blocs peuvent nécessiter un dessin supplémentaire ; à 50 %, tout le volume peut devenir translucide. Mesurer et adapter le cache/rendu avant de considérer « tous les blocs » comme terminé.
 
-Le troisième risque est la compatibilité avec les autres moteurs de rendu. Sodium et Iris restent hors du critère de livraison initial tant qu'ils n'ont pas été testés sur leurs versions exactes. Le multijoueur reste entièrement côté client et n'ajoute aucune logique réseau propre au mod.
+Le troisième risque est la compatibilité avec les autres moteurs de rendu. Le démarrage et la construction de chunks passent avec Sodium 0.8.7, mais la checklist visuelle reste requise avant d'annoncer la compatibilité complète. Les autres versions sont bloquées par défaut et Iris reste exclu. Le multijoueur reste entièrement côté client et n'ajoute aucune logique réseau propre au mod.
 
 ## 5. Références de départ
 

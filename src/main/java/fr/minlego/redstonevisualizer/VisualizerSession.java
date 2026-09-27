@@ -1,5 +1,6 @@
 package fr.minlego.redstonevisualizer;
 
+import fr.minlego.redstonevisualizer.compat.SodiumCompatibility;
 import fr.minlego.redstonevisualizer.config.RedstoneVisualizerConfig;
 import fr.minlego.redstonevisualizer.core.AlphaTracker;
 import fr.minlego.redstonevisualizer.core.Zone;
@@ -15,7 +16,6 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ServerInfo;
-import net.minecraft.client.render.chunk.ChunkBuilder;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
@@ -50,6 +50,10 @@ public final class VisualizerSession {
         return world != null && stateDirectory != null;
     }
 
+    public boolean isVisualizationActive() {
+        return state.enabled() && SodiumCompatibility.isVisualizationAllowed();
+    }
+
     public void onClientTick() {
         if (client.world != world) {
             changeWorld(client.world);
@@ -74,7 +78,7 @@ public final class VisualizerSession {
         } else {
             tick++;
         }
-        if (state.enabled() && state.zone().isPresent()) {
+        if (isVisualizationActive() && state.zone().isPresent()) {
             for (fr.minlego.redstonevisualizer.core.BlockPos position : updates.trackedPositions()) {
                 if (updates.alphaPercent(position, previousTick)
                         != updates.alphaPercent(position, tick)) {
@@ -91,12 +95,22 @@ public final class VisualizerSession {
             return;
         }
         boolean wasEnabled = state.enabled();
+        if (!wasEnabled && !SodiumCompatibility.isVisualizationAllowed()) {
+            return;
+        }
         state = state.withEnabled(!wasEnabled);
         if (!wasEnabled) {
             updates.clear();
         }
         observe();
         save();
+        rebuild(state.zone().orElse(null));
+        publish();
+    }
+
+    /** Refreshes the effective state after a session-only compatibility override. */
+    public void compatibilityChanged() {
+        observe();
         rebuild(state.zone().orElse(null));
         publish();
     }
@@ -147,7 +161,7 @@ public final class VisualizerSession {
     }
 
     private void observe() {
-        if (isWorldAvailable() && state.enabled()) {
+        if (isWorldAvailable() && isVisualizationActive()) {
             BlockStateUpdateTracker.enable(world, this::onBlockStateChange);
         } else if (world != null) {
             BlockStateUpdateTracker.disable(world);
@@ -156,7 +170,7 @@ public final class VisualizerSession {
 
     private void onBlockStateChange(BlockPos position, BlockState before, BlockState after) {
         Zone zone = state.zone().orElse(null);
-        if (!state.enabled() || zone == null || !zone.contains(dimension(),
+        if (!isVisualizationActive() || zone == null || !zone.contains(dimension(),
                 new fr.minlego.redstonevisualizer.core.BlockPos(
                         position.getX(), position.getY(), position.getZ()))) {
             return;
@@ -189,7 +203,7 @@ public final class VisualizerSession {
 
     private void publish() {
         TerrainMask.configure(state.zone().orElse(null), dimension(),
-                isWorldAvailable() && state.enabled(), updates, Set.copyOf(whitelist), tick);
+                isWorldAvailable() && isVisualizationActive(), updates, Set.copyOf(whitelist), tick);
     }
 
     private Path stateDirectory(ClientWorld next) {
@@ -222,17 +236,17 @@ public final class VisualizerSession {
         if (world == null || zone == null || !zone.dimension().equals(dimension())) {
             return;
         }
-        for (ChunkBuilder.BuiltChunk section : client.worldRenderer.getBuiltChunks()) {
-            BlockPos origin = section.getOrigin();
-            if ((long) origin.getX() <= (long) zone.maxX() + 1
-                    && (long) origin.getX() + 15 >= (long) zone.minX() - 1
-                    && (long) origin.getY() <= (long) zone.maxY() + 1
-                    && (long) origin.getY() + 15 >= (long) zone.minY() - 1
-                    && (long) origin.getZ() <= (long) zone.maxZ() + 1
-                    && (long) origin.getZ() + 15 >= (long) zone.minZ() - 1) {
-                section.scheduleRebuild(false);
-            }
-        }
+        client.worldRenderer.scheduleBlockRenders(lower(zone.minX()), lower(zone.minY()),
+                lower(zone.minZ()), upper(zone.maxX()), upper(zone.maxY()),
+                upper(zone.maxZ()));
+    }
+
+    private static int lower(int value) {
+        return value == Integer.MIN_VALUE ? value : value - 1;
+    }
+
+    private static int upper(int value) {
+        return value == Integer.MAX_VALUE ? value : value + 1;
     }
 
     private void save() {
