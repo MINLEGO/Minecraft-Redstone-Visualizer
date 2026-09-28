@@ -14,5 +14,13 @@
   "redstonevisualizer.config.comment.alertThreshold": "Affiche une alerte au-delà de ce nombre de positions, sans bloquer l’activation.",
   "redstonevisualizer.config.comment.whitelist": "Identifiants de blocs namespacés qui restent entièrement visibles.",
   "redstonevisualizer.config.comment.toggle": "Raccourci utilisé pour basculer le visualiseur.",
-  "redstonevisualizer.config.comment.openMenu": "Raccourci utilisé pour ouvrir les réglages du visualiseur."
+  "redstonevisualizer.config.comment.openMenu": "Raccourci utilisé pour ouvrir les réglages du visualiseur.",
+  "redstonevisualizer.sodium.force": "Forcer pour cette session",
+  "redstonevisualizer.sodium.warning.detected": "Sodium %s détecté.",
+  "redstonevisualizer.sodium.warning.validated": "Compatibilité validée uniquement avec Sodium %s.",
+  "redstonevisualizer.sodium.warning.disabled": "La visualisation est désactivée jusqu'au forçage de cette session.",
+  "redstonevisualizer.sodium.warning.risk": "Le mode forcé peut être incomplet ou faire planter le client.",
+  "redstonevisualizer.sodium.status.forced": "FORCÉ — NON TESTÉ",
+  "redstonevisualizer.sodium.message.disabled": "La visualisation est désactivée jusqu'au forçage de Sodium.",
+  "redstonevisualizer.sodium.message.forced": "La compatibilité Sodium est forcée pour cette session."
 }

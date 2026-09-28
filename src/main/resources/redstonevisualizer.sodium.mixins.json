@@ -1,0 +1,17 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "fr.minlego.redstonevisualizer.compat.mixin.sodium",
+  "plugin": "fr.minlego.redstonevisualizer.compat.mixin.SodiumMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "SodiumBlockRendererMixin",
+    "SodiumFaceCullingMixin",
+    "SodiumFluidRendererMixin",
+    "SodiumFluidRendererImplMixin",
+    "SodiumSectionOcclusionMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}
