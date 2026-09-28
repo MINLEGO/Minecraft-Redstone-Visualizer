@@ -6,7 +6,6 @@ import me.fallenbreath.conditionalmixin.api.annotation.Restriction;
 import net.caffeinemc.mods.sodium.client.model.color.ColorProvider;
 import net.caffeinemc.mods.sodium.client.render.chunk.compile.buffers.ChunkModelBuilder;
 import net.caffeinemc.mods.sodium.client.render.chunk.compile.pipeline.DefaultFluidRenderer;
-import net.caffeinemc.mods.sodium.client.render.chunk.terrain.material.DefaultMaterials;
 import net.caffeinemc.mods.sodium.client.render.chunk.terrain.material.Material;
 import net.caffeinemc.mods.sodium.client.render.chunk.translucent_sorting.TranslucentGeometryCollector;
 import net.caffeinemc.mods.sodium.client.world.LevelSlice;
@@ -21,7 +20,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -57,20 +55,6 @@ public abstract class SodiumFluidRendererMixin {
             int alpha = ((color >>> 24) & 255) * redstoneVisualizer$opacity;
             quadColors[vertex] = (color & 0x00ffffff) | (((alpha + 127) / 255) << 24);
         }
-    }
-
-    @ModifyArg(method = "render", at = @At(value = "INVOKE",
-            target = "Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/pipeline/DefaultFluidRenderer;"
-                    + "writeQuad(Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/buffers/ChunkModelBuilder;"
-                    + "Lnet/caffeinemc/mods/sodium/client/render/chunk/translucent_sorting/TranslucentGeometryCollector;"
-                    + "Lnet/caffeinemc/mods/sodium/client/render/chunk/terrain/material/Material;"
-                    + "Lnet/minecraft/util/math/BlockPos;"
-                    + "Lnet/caffeinemc/mods/sodium/client/model/quad/ModelQuadView;"
-                    + "Lnet/caffeinemc/mods/sodium/client/model/quad/properties/ModelQuadFacing;Z)V"),
-            index = 2, require = 0)
-    private Material redstoneVisualizer$fluidMaterial(Material material) {
-        return redstoneVisualizer$opacity > 0 && redstoneVisualizer$opacity < 255
-                ? DefaultMaterials.TRANSLUCENT : material;
     }
 
     @Inject(method = "isFullBlockFluidSideVisible", at = @At("HEAD"),
