@@ -6,6 +6,7 @@ Mod Fabric **côté client**, pour Minecraft Java **1.21.11**, utilisable en sol
 
 - Installer Fabric Loader **0.19.5** pour Minecraft **1.21.11**, Fabric API **0.141.6+1.21.11** et MaLiLib **0.27.20**. Le JAR du mod embarque `conditional-mixin` 0.6.4, nécessaire à cette version de MaLiLib.
 - Sodium est facultatif. L'adaptateur intégré cible exactement **Sodium 0.8.7+mc1.21.11** ; Sodium n'est ni embarqué ni requis par le JAR.
+- Pour un meilleur rendu des blocs entités pris en charge, **[Better Block Entities](https://modrinth.com/mod/better-block-entities)** est recommandé : ce mod client améliore notamment leur effet de transparence et d'éclairage. Il est facultatif et nécessite Sodium.
 - Copier `build/libs/redstone-visualizer-1.21.11-0.1.0.jar` dans le dossier `mods` du profil Fabric 1.21.11. Ne pas y mettre aussi le JAR 1.21.10.
 - Pour développer : JDK **21**, Gradle Wrapper **9.5.0**, Loom **1.17.21** ; exécuter `./gradlew build` puis `./gradlew runClient` (`.\gradlew.bat` sous Windows). Mappings Yarn : **1.21.11+build.6**. Le client de développement utilise `run-1.21.11/`, séparé des sauvegardes du prototype 1.21.10.
 
