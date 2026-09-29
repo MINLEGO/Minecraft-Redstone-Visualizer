@@ -2,6 +2,10 @@
 
 Mod Fabric **côté client**, pour Minecraft Java **1.21.11**, utilisable en solo ou sur un serveur. Il rend moins visibles les blocs d'un volume sélectionné, puis révèle temporairement ceux dont le `BlockState` change. La version 1.21.10 reste sur la branche `master`.
 
+## Licence
+
+Le code de Redstone Visualizer est distribué sous licence [MIT](LICENSE). Les dépendances et fichiers tiers conservent leurs licences respectives.
+
 ## Installation et lancement
 
 - Installer Fabric Loader **0.19.5** pour Minecraft **1.21.11**, Fabric API **0.141.6+1.21.11** et MaLiLib **0.27.20**. Le JAR du mod embarque `conditional-mixin` 0.6.4, nécessaire à cette version de MaLiLib.
@@ -22,7 +26,7 @@ Avec une autre version de Sodium, la visualisation reste désactivée et l'écra
 
 ## État de validation
 
-`./gradlew build` passe, avec les tests autonomes de zone, temporisation, logique de liste blanche, détection de la version Sodium et sauvegarde. `./gradlew runClient` ouvre un monde avec le renderer vanilla puis avec Sodium **0.8.7+mc1.21.11** sans erreur de mixin ; le JAR final n'embarque pas Sodium. L'utilisateur a validé le rendu des blocs vanilla hors block entities ainsi que la parité visuelle entre 1.21.10 et 1.21.11. La validation visuelle Sodium à 0/50/100 % (pierre, redstone, verre, eau, coffre, whitelist, fondu, faces internes et frontière de chunk), les block entities à opacité intermédiaire et les performances à 32 768 positions restent à faire en jeu. Iris reste hors périmètre. Le support multijoueur est couvert par le build et les tests de persistance, mais demande encore un essai dans une vraie connexion serveur. `PLAN.md` décrit le contrat et ses critères complets.
+`./gradlew build` passe, avec les tests autonomes de zone, temporisation, logique de liste blanche, détection de la version Sodium et sauvegarde. `./gradlew runClient` ouvre un monde avec le renderer vanilla puis avec Sodium **0.8.7+mc1.21.11** sans erreur de mixin ; le JAR final n'embarque pas Sodium. L'utilisateur a validé le rendu des blocs vanilla hors block entities, la parité visuelle 1.21.10/1.21.11, les block entities à opacité intermédiaire (dont les surfaces End Portal et End Gateway), Sodium 0.8.7 et une vraie connexion multijoueur. Les mesures à 32 768 observateurs sont désormais disponibles ci-dessous, avec seulement 1 à 3 essais par configuration ; elles restent indicatives. Iris reste hors périmètre. `PLAN.md` décrit le contrat et les limites connues.
 
 ### Relevé de performance indicatif
 
@@ -35,4 +39,19 @@ Conditions : **Minecraft 1.21.11** en **1536 × 864**, sans limite FPS ni mod d'
 | Porte activée, mod désactivé | 88 ms | 36 ms |
 | Porte activée, mod activé | 66 ms | 38 ms |
 
-Ce relevé est indicatif, pas un benchmark reproductible : les distances de rendu et de simulation, le nombre de répétitions et la méthode exacte de mesure n'ont pas été consignés. Dans ces conditions précises, il montre néanmoins que l'impact observé du mod sur les performances est extrêmement faible : les pics au repos sont identiques ; pendant l'activation, le pic frame passe de 88 à 66 ms et le pic tick de 36 à 38 ms. Une seule capture de maxima sur 7 408 blocs ne valide pas encore le critère de 32 768 positions et ne permet pas de généraliser le résultat à d'autres configurations.
+Ce relevé est indicatif, pas un benchmark reproductible : les distances de rendu et de simulation, le nombre de répétitions et la méthode exacte de mesure n'ont pas été consignés. Dans ces conditions précises, les pics au repos sont identiques ; pendant l'activation, le pic frame passe de 88 à 66 ms et le pic tick de 36 à 38 ms. Ces valeurs ne se généralisent pas à d'autres configurations.
+
+### Essai indicatif — 32 768 observateurs
+
+Conditions : Minecraft **1.21.11**, Fabric API, MaLiLib et Redstone Visualizer ; **Intel Core 5 120U sans GPU dédié**, FPS non limités, VSync désactivée, distances de rendu/simulation **4/5 chunks**. Monde vide avec ticks aléatoires et apparition des créatures désactivés. Tous les **32³ observateurs** de la zone s'activent une fois ; environ **348 sont actifs simultanément en moyenne**. La séquence dure **9,4 s**. Chaque configuration a été mesurée **1 à 3 fois** ; les min/moy/max ci-dessous sont relevés sur la fenêtre de mesure de 10 s vers la fin de l'activation, pas agrégés entre essais.
+
+| Contraption ON | Mod activé | Opacité | Temps par image min/moy/max (ms/frame) | Temps de tick min/moy/max (mspt) |
+|---|---|---:|---:|---:|
+| Non | Non | 100 % | 2/3/6 | 0/1/2 |
+| Oui | Non | 100 % | 2/3/7 | 0/1/5 |
+| Non | Oui | 0 % | 2/3/6 | 0/1/2 |
+| Non | Oui | 50 % | 3/4/7 | 0/1/2 |
+| Oui | Oui | 0 % | 3/6/18 | 0/1/6 |
+| Oui | Oui | 50 % | 6/20/62 | 0/2/10 |
+
+Cette série confirme un essai à 32 768 positions, mais le faible nombre de répétitions ne permet pas d'en tirer une performance générale. Une comparaison plus robuste demanderait une répétition automatisée de chaque configuration.

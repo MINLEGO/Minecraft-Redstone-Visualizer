@@ -1,9 +1,9 @@
 # Plan de développement — Redstone Visualizer
 
-Statut : prototype implémenté ; rendu vanilla hors block entities et parité 1.21.10/1.21.11 validés par l'utilisateur ; adaptateur Sodium 0.8.7 chargé sans erreur, validation visuelle en attente.
+Statut : fonctionnalités V1 implémentées ; rendu vanilla, block entities 1.21.11, Sodium 0.8.7 et connexion multijoueur validés par l'utilisateur. Le scénario de 32 768 positions a été mesuré 1 à 3 fois par configuration ; ces résultats sont indicatifs. `submitItem` reste facultatif et Iris est exclu.
 Cible : Minecraft Java **1.21.10 et 1.21.11**, **Fabric**, mod installé uniquement côté client, usage **solo ou multijoueur**.
 
-Retest utilisateur en 1.21.11 sur le monde officiel Debug : tous les blocs sont invisibles à 0 % d'opacité. Au-dessus de 0 %, les parties rendues par block entities restent opaques : lits, coffres (toutes variantes, priorité), panneaux, têtes, portails de l'End, livres des tables d'enchantement et des lecterns, bannières, shulker boxes, conduits, parties mobiles des cloches, statues de copper golem et pots décorés.
+Retest utilisateur en 1.21.11 sur le monde officiel Debug : tous les blocs sont invisibles à 0 % d'opacité. Depuis, les chemins requis `submitModel`, `submitModelPart`, `submitText` et `submitCustom` ont été validés à opacité intermédiaire, dont les surfaces End Portal et End Gateway. Le z-fighting entre cuboïdes coplanaires d'un même modèle vanilla est accepté comme limite connue ; les faisceaux, `submitItem` et les autres exclusions de l'issue #1 restent hors couverture requise.
 
 ## 1. Résultat attendu
 
@@ -95,11 +95,11 @@ Règle d'alpha pour un bloc hors whitelist, avec `a` l'opacité de base, `X` la 
 
 ## 4. Ordre de priorité et risques
 
-Le **prototype de rendu est le premier jalon risqué**. Minecraft dessine le terrain, les fluides et les block entities par des voies différentes. L'opacité à 50 % et la visibilité des faces internes nécessitent plus qu'un filtre d'updates. La validation sur pierre + redstone + eau + coffre évite de construire une interface complète autour d'un rendu qui ne satisferait pas le contrat.
+Les chemins de rendu vanilla et block entities requis ont été validés par l'utilisateur en 1.21.11. Un z-fighting entre cuboïdes coplanaires d'un même modèle peut subsister ; sa correction demanderait un rendu plus complexe et reste différée.
 
-Le second risque est la performance : à 0 % de base, peu de blocs peuvent nécessiter un dessin supplémentaire ; à 50 %, tout le volume peut devenir translucide. Mesurer et adapter le cache/rendu avant de considérer « tous les blocs » comme terminé.
+Le coût à 32 768 positions a été mesuré dans un monde vide, mais seulement 1 à 3 fois par configuration. À 50 % d'opacité avec la contraption active, la moyenne relevée est de 20 ms/frame et 2 mspt, avec des maxima de 62 ms/frame et 10 mspt. Ces mesures décrivent ce scénario précis ; 10 à 20 répétitions automatisées seraient nécessaires pour une comparaison plus robuste.
 
-Le troisième risque est la compatibilité avec les autres moteurs de rendu. Le démarrage et la construction de chunks passent avec Sodium 0.8.7, mais la checklist visuelle reste requise avant d'annoncer la compatibilité complète. Les autres versions sont bloquées par défaut et Iris reste exclu. Le multijoueur reste entièrement côté client et n'ajoute aucune logique réseau propre au mod.
+La compatibilité visuelle Sodium 0.8.7 et une vraie connexion multijoueur ont été validées par l'utilisateur. Les autres versions de Sodium restent désactivées par défaut et Iris est exclu.
 
 ## 5. Références de départ
 
